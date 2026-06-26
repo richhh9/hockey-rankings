@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasy Hockey Rankings</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --surface: #111620;
+    --surface2: #1a2030;
+    --border: #1e2a3a;
+    --accent: #3b82f6;
+    --text: #e8edf5;
+    --text-muted: #6b7a8d;
+    --text-dim: #3d4d60;
+    --gold: #f5c842;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  .logo span { color: var(--accent); }
+  .logo-season { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; }
+
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  .header-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Barlow', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .header-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .header-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .user-badge {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* AUTH SCREEN */
+  .auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .auth-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .auth-box h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .auth-box p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .auth-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  .auth-input:focus { border-color: var(--accent); }
+  .auth-input::placeholder { color: var(--text-dim); }
+
+  .auth-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+  .auth-btn:hover { background: #2563eb; }
+  .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .auth-msg {
+    margin-top: 14px;
+    font-size: 13px;
+    min-height: 20px;
+  }
+  .auth-msg.success { color: var(--green); }
+  .auth-msg.error   { color: var(--red); }
+
+  .auth-switch {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .auth-switch a {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .auth-switch a:hover { text-decoration: underline; }
+
+  /* POSITION TABS */
+  .position-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .pos-tab {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 20px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pos-tab:hover { color: var(--text); }
+  .pos-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* VIEW TABS */
+  .view-tabs {
+    display: flex;
+    padding: 20px 24px 0;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .view-tab {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .view-tab:first-child { border-radius: 8px 0 0 8px; }
+  .view-tab:last-child  { border-radius: 0 8px 8px 0; border-left: none; }
+  .view-tab:nth-child(2){ border-left: none; border-right: none; }
+  .view-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* MAIN */
+  .main { padding: 24px; max-width: 700px; margin: 0 auto; }
+
+  /* VOTE */
+  .vote-prompt { text-align: center; margin-bottom: 28px; }
+  .vote-prompt h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .vote-prompt p { color: var(--text-muted); font-size: 13px; margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .matchup {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    align-items: center;
+  }
+
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .player-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,0.15); }
+  .player-card:active { transform: scale(0.97); }
+  .player-card.voted-winner { border-color: var(--accent); animation: winPulse 0.4s ease; }
+  .player-card.voted-loser  { opacity: 0.4; }
+
+  @keyframes winPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(59,130,246,0.5); }
+    100% { box-shadow: 0 0 0 16px rgba(59,130,246,0); }
+  }
+
+  .player-first { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .player-last  {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1.1;
+    margin: 2px 0 6px;
+  }
+  .player-team { display: block; font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .or-divider {
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .skip-btn {
+    display: block; margin: 20px auto 0; background: none; border: none;
+    color: var(--text-dim); font-size: 13px; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer; font-family: 'Barlow', sans-serif;
+    transition: color 0.15s; padding: 8px 16px;
+  }
+  .skip-btn:hover { color: var(--text-muted); }
+
+  .vote-counter {
+    text-align: center; margin-top: 20px; color: var(--text-dim);
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .vote-counter span { color: var(--text-muted); }
+
+  /* RANKED */
+  .results-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .rank-row {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    display: grid; grid-template-columns: 44px 1fr auto;
+    align-items: center; padding: 12px 16px; gap: 12px;
+  }
+  .rank-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; color: var(--text-dim); text-align: center; }
+  .rank-row:nth-child(1) .rank-num { color: var(--gold); font-size: 26px; }
+  .rank-row:nth-child(2) .rank-num { color: #c0c0c0; font-size: 24px; }
+  .rank-row:nth-child(3) .rank-num { color: #cd7f32; font-size: 23px; }
+
+  .rank-info { display: flex; flex-direction: column; gap: 2px; }
+  .rank-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .rank-team { font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .elo-bar-bg { background: var(--surface2); border-radius: 2px; height: 3px; margin-top: 5px; overflow: hidden; }
+  .elo-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .rank-elo-wrap { text-align: right; }
+  .rank-elo { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: var(--accent); }
+  .rank-elo-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* TIERS */
+  .tier-section { margin-bottom: 28px; }
+  .tier-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .tier-badge {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px;
+    width: 44px; height: 44px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .tier-S .tier-badge { background: rgba(245,200,66,0.15); color: var(--gold);   border: 1px solid rgba(245,200,66,0.3); }
+  .tier-A .tier-badge { background: rgba(239,68,68,0.1);   color: #f87171;       border: 1px solid rgba(239,68,68,0.2); }
+  .tier-B .tier-badge { background: rgba(249,115,22,0.1);  color: #fb923c;       border: 1px solid rgba(249,115,22,0.2); }
+  .tier-C .tier-badge { background: rgba(59,130,246,0.1);  color: var(--accent); border: 1px solid rgba(59,130,246,0.2); }
+  .tier-D .tier-badge { background: rgba(107,114,128,0.1); color: #9ca3af;       border: 1px solid rgba(107,114,128,0.2); }
+  .tier-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .tier-count { font-size: 12px; color: var(--text-dim); }
+  .tier-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+  .tier-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .tier-card-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .tier-card-team { font-size: 11px; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
+  .tier-card-elo  { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .unranked-note { text-align: center; padding: 20px; color: var(--text-dim); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* EMPTY / LOADING */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-state h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; color: var(--text); }
+  .loading { text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* EDIT */
+  .edit-section { margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px; }
+  .edit-toggle {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    font-family: 'Barlow', sans-serif; letter-spacing: 0.05em; text-transform: uppercase;
+    display: block; margin: 0 auto; transition: all 0.15s;
+  }
+  .edit-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .edit-panel { display: none; margin-top: 16px; }
+  .edit-panel.open { display: block; }
+  .edit-panel h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .edit-panel p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5; }
+  .edit-panel code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-size: 11px; color: #a8d8f0; }
+  .pos-edit-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .pos-edit-tab {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+    padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; transition: all 0.15s;
+  }
+  .pos-edit-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif;
+    font-size: 13px; padding: 12px; resize: vertical; min-height: 160px;
+    line-height: 1.6; outline: none; transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text-dim); }
+  .save-btn {
+    background: var(--accent); border: none; color: #fff; padding: 10px 24px;
+    border-radius: 6px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase;
+    margin-top: 10px; transition: background 0.15s;
+  }
+  .save-btn:hover { background: #2563eb; }
+  .save-msg { display: inline-block; margin-left: 10px; font-size: 12px; color: var(--green); opacity: 0; transition: opacity 0.3s; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 10px 20px; border-radius: 8px;
+    font-size: 13px; z-index: 999; transition: transform 0.3s ease; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 520px) {
+    .main { padding: 16px; }
+    .matchup { grid-template-columns: 1fr 28px 1fr; }
+    .player-card { padding: 20px 12px; }
+    .player-last { font-size: 20px; }
+    .tier-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    header { padding: 0 16px; }
+    .position-tabs { padding: 12px 16px 0; }
+    .view-tabs { padding: 16px 16px 0; }
+    .auth-box { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Fantasy Hockey <span>Rankings</span>
+    <div class="logo-season">2026–27</div>
+  </div>
+  <div class="header-right" id="header-right">
+    <!-- filled by JS -->
+  </div>
+</header>
+
+<div id="app-shell" style="display:none;">
+  <div class="position-tabs">
+    <button class="pos-tab active" onclick="setPosition('F')">Forwards</button>
+    <button class="pos-tab" onclick="setPosition('D')">Defence</button>
+    <button class="pos-tab" onclick="setPosition('G')">Goalies</button>
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="setView('vote')">Vote</button>
+    <button class="view-tab" onclick="setView('ranked')">Rankings</button>
+    <button class="view-tab" onclick="setView('tiers')">Tiers</button>
+  </div>
+  <div class="main" id="main-content"></div>
+</div>
+
+<div id="auth-shell">
+  <!-- filled by JS -->
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://ukovbjtqronbjsyucsjo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrb3ZianRxcm9uYmpzeXVjc2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MzUyNjcsImV4cCI6MjA5ODAxMTI2N30.vryPjmCi4hMaIQmxaTEAvND_J4r9mg7ZZh6v2bU82Io';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── DEFAULT PLAYERS ───────────────────────────────────────────────────────
+const DEFAULT_PLAYERS = {
+  F: [
+    "Connor McDavid | EDM",
+    "Nathan MacKinnon | COL",
+    "Nikita Kucherov | TBL",
+    "Leon Draisaitl | EDM",
+    "David Pastrnak | BOS",
+    "Kirill Kaprizov | MIN",
+    "Mikko Rantanen | DAL",
+    "Jake Guentzel | TBL",
+    "Sam Reinhart | FLA",
+    "Brady Tkachuk | OTT",
+    "Brayden Point | TBL",
+    "Auston Matthews | TOR",
+    "Matthew Tkachuk | FLA",
+    "Sidney Crosby | PIT",
+    "Alex Ovechkin | WSH",
+    "Steven Stamkos | NSH",
+    "William Nylander | TOR",
+    "Mitch Marner | VGK",
+    "J.T. Miller | NYR",
+    "Elias Pettersson | VAN",
+  ],
+  D: [
+    "Cale Makar | COL",
+    "Evan Bouchard | EDM",
+    "Quinn Hughes | MIN",
+    "Victor Hedman | TBL",
+    "Adam Fox | NYR",
+    "Devon Toews | COL",
+    "Rasmus Dahlin | BUF",
+    "Roman Josi | NSH",
+    "Noah Dobson | MTL",
+    "Drew Doughty | LAK",
+    "Erik Karlsson | PIT",
+    "Darnell Nurse | EDM",
+    "Morgan Rielly | TOR",
+    "Shea Theodore | VGK",
+  ],
+  G: [
+    "Connor Hellebuyck | WPG",
+    "Juuse Saros | NSH",
+    "Igor Shesterkin | NYR",
+    "Andrei Vasilevskiy | TBL",
+    "Thatcher Demko | VAN",
+    "Jake Oettinger | DAL",
+    "Linus Ullmark | OTT",
+    "Frederik Andersen | CAR",
+    "Ilya Sorokin | NYI",
+    "Jeremy Swayman | BOS",
+    "Filip Gustavsson | MIN",
+    "Logan Thompson | WSH",
+  ],
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let currentPos  = 'F';
+let currentView = 'vote';
+let editPos     = 'F';
+let editOpen    = false;
+let currentUser = null;
+let players     = { F: [], D: [], G: [] };
+let totalVotes  = 0;
+let currentMatchup = null;
+let authMode    = 'login'; // 'login' | 'signup' | 'magic'
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function parseLine(l) {
+  const parts = l.split('|').map(s => s.trim());
+  const name  = parts[0];
+  const team  = parts[1] || '';
+  const ns    = name.split(' ');
+  const last  = ns.pop();
+  const first = ns.join(' ');
+  const id    = name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  return { id, first, last, team, elo: 1200, games: 0 };
+}
+
+// ── AUTH UI ───────────────────────────────────────────────────────────────
+function renderAuth() {
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('header-right').innerHTML = '';
+
+  const shell = document.getElementById('auth-shell');
+
+  if (authMode === 'magic') {
+    shell.innerHTML = `
+      <div class="auth-screen">
+        <div class="auth-box">
+          <h2>Sign In</h2>
+          <p>Enter your email and we'll send you a magic link — no password needed.</p>
+          <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" />
+          <button class="auth-btn" id="auth-submit" onclick="sendMagicLink()">Send Magic Link</button>
+          <div class="auth-msg" id="auth-msg"></div>
+          <div class="auth-switch">
+            Prefer a password? <a onclick="setAuthMode('login')">Sign in with password</a>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const isLogin = authMode === 'login';
+  shell.innerHTML = `
+    <div class="auth-screen">
+      <div class="auth-box">
+        <h2>${isLogin ? 'Sign In' : 'Create Account'}</h2>
+        <p>${isLogin ? 'Welcome back. Sign in to access your rankings.' : 'Create an account to save your rankings across devices.'}</p>
+        <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" />
+        <input class="auth-input" id="auth-password" type="password" placeholder="Password" />
+        <button class="auth-btn" id="auth-submit" onclick="${isLogin ? 'signIn()' : 'signUp()'}">
+          ${isLogin ? 'Sign In' : 'Create Account'}
+        </button>
+        <div class="auth-msg" id="auth-msg"></div>
+        <div class="auth-switch" style="margin-top:10px;">
+          <a onclick="setAuthMode('magic')">Sign in with magic link instead</a>
+        </div>
+        <div class="auth-switch">
+          ${isLogin
+            ? 'No account? <a onclick="setAuthMode(\'signup\')">Create one</a>'
+            : 'Already have an account? <a onclick="setAuthMode(\'login\')">Sign in</a>'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function setAuthMode(mode) { authMode = mode; renderAuth(); }
+
+function authMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  if (el) { el.textContent = msg; el.className = 'auth-msg ' + (type || ''); }
+}
+
+function setAuthLoading(loading) {
+  const btn = document.getElementById('auth-submit');
+  if (btn) btn.disabled = loading;
+}
+
+async function signUp() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  if (!email || !pass) return authMsg('Please fill in all fields.', 'error');
+  setAuthLoading(true);
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  setAuthLoading(false);
+  if (error) return authMsg(error.message, 'error');
+  authMsg('Account created! Check your email to confirm, then sign in.', 'success');
+}
+
+async function signIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  if (!email || !pass) return authMsg('Please fill in all fields.', 'error');
+  setAuthLoading(true);
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setAuthLoading(false);
+  if (error) return authMsg(error.message, 'error');
+}
+
+async function sendMagicLink() {
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) return authMsg('Please enter your email.', 'error');
+  setAuthLoading(true);
+  const { error } = await sb.auth.signInWithOtp({ email });
+  setAuthLoading(false);
+  if (error) return authMsg(error.message, 'error');
+  authMsg('Magic link sent! Check your email.', 'success');
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+}
+
+// ── SUPABASE DATA ─────────────────────────────────────────────────────────
+async function loadPlayers() {
+  document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
+
+  const { data, error } = await sb.from('rankings').select('*');
+
+  if (error) { showToast('Error loading data'); return; }
+
+  if (!data || data.length === 0) {
+    // First time — seed from defaults
+    await seedPlayers();
+  } else {
+    players = { F: [], D: [], G: [] };
+    totalVotes = 0;
+    data.forEach(row => {
+      if (players[row.position]) {
+        players[row.position].push({
+          id: row.player_id, first: row.first, last: row.last,
+          team: row.team, elo: row.elo, games: row.games
+        });
+        totalVotes += row.games;
+      }
+    });
+    totalVotes = Math.floor(totalVotes / 2);
+    ['F','D','G'].forEach(pos => {
+      players[pos].sort((a,b) => b.elo - a.elo);
+    });
+  }
+
+  currentMatchup = null;
+  render();
+}
+
+async function seedPlayers() {
+  const rows = [];
+  ['F','D','G'].forEach(pos => {
+    players[pos] = DEFAULT_PLAYERS[pos].map(l => parseLine(l));
+    players[pos].forEach(p => {
+      rows.push({ position: pos, player_id: p.id, first: p.first, last: p.last, team: p.team, elo: 1200, games: 0 });
+    });
+  });
+
+  const { error } = await sb.from('rankings').insert(rows);
+  if (error) showToast('Error saving defaults');
+  else showToast('Welcome! Your player list is ready.');
+  render();
+}
+
+async function savePlayer(pos, p) {
+  await sb.from('rankings')
+    .upsert({ position: pos, player_id: p.id, first: p.first, last: p.last, team: p.team, elo: p.elo, games: p.games },
+            { onConflict: 'position,player_id' });
+}
+
+// ── ELO ───────────────────────────────────────────────────────────────────
+function expectedScore(a, b) { return 1 / (1 + Math.pow(10, (b - a) / 400)); }
+
+function updateElo(winner, loser) {
+  const Kw = winner.games < 10 ? 48 : winner.games < 30 ? 32 : 24;
+  const Kl = loser.games  < 10 ? 48 : loser.games  < 30 ? 32 : 24;
+  const ew = expectedScore(winner.elo, loser.elo);
+  winner.elo = Math.round(winner.elo + Kw * (1 - ew));
+  loser.elo  = Math.round(loser.elo  + Kl * (0 - (1 - ew)));
+  winner.games++;
+  loser.games++;
+}
+
+// ── MATCHUP ───────────────────────────────────────────────────────────────
+function pickMatchup(list) {
+  if (list.length < 2) return null;
+  const a = Math.floor(Math.random() * list.length);
+  let b;
+  do { b = Math.floor(Math.random() * list.length); } while (b === a);
+  return [list[a], list[b]];
+}
+
+function initMatchup() { currentMatchup = pickMatchup(players[currentPos]); }
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  const c = document.getElementById('main-content');
+  if      (currentView === 'vote')   renderVote(c);
+  else if (currentView === 'ranked') renderRanked(c);
+  else                               renderTiers(c);
+}
+
+function renderVote(c) {
+  const list = players[currentPos];
+  if (list.length < 2) {
+    c.innerHTML = '<div class="empty-state"><h3>Not enough players</h3><p>Add at least 2 players to start voting.</p></div>' + editSection();
+    return;
+  }
+  if (!currentMatchup) initMatchup();
+  const [a, b]  = currentMatchup;
+  const posLabel = { F: 'Forward', D: 'Defenceman', G: 'Goalie' }[currentPos];
+
+  c.innerHTML = `
+    <div class="vote-prompt">
+      <h2>Who is the better ${posLabel} right now?</h2>
+      <p>${totalVotes} vote${totalVotes !== 1 ? 's' : ''} cast</p>
+    </div>
+    <div class="matchup">
+      <div class="player-card" id="card-a" onclick="castVote('a')">
+        <span class="player-first">${a.first}</span>
+        <span class="player-last">${a.last}</span>
+        <span class="player-team">${a.team}</span>
+      </div>
+      <div class="or-divider">or</div>
+      <div class="player-card" id="card-b" onclick="castVote('b')">
+        <span class="player-first">${b.first}</span>
+        <span class="player-last">${b.last}</span>
+        <span class="player-team">${b.team}</span>
+      </div>
+    </div>
+    <button class="skip-btn" onclick="skipMatchup()">Can't decide / Skip</button>
+    <div class="vote-counter">
+      Matchups played &mdash;
+      <span>${a.first} ${a.last}: ${a.games}</span> &middot;
+      <span>${b.first} ${b.last}: ${b.games}</span>
+    </div>
+    ${editSection()}`;
+}
+
+async function castVote(side) {
+  if (!currentMatchup) return;
+  const [a, b]   = currentMatchup;
+  const winner   = side === 'a' ? a : b;
+  const loser    = side === 'a' ? b : a;
+  const winnerId = side === 'a' ? 'card-a' : 'card-b';
+  const loserId  = side === 'a' ? 'card-b' : 'card-a';
+
+  updateElo(winner, loser);
+  totalVotes++;
+
+  document.getElementById(winnerId).classList.add('voted-winner');
+  document.getElementById(loserId).classList.add('voted-loser');
+
+  // Save both to Supabase in the background
+  await Promise.all([
+    savePlayer(currentPos, winner),
+    savePlayer(currentPos, loser),
+  ]);
+
+  setTimeout(() => { currentMatchup = null; render(); }, 500);
+}
+
+function skipMatchup() { currentMatchup = null; initMatchup(); render(); }
+
+// ── RANKED ────────────────────────────────────────────────────────────────
+function renderRanked(c) {
+  const list   = [...players[currentPos]].sort((a,b) => b.elo - a.elo);
+  const maxElo = list[0]?.elo || 1200;
+  const minElo = list[list.length - 1]?.elo || 1200;
+  const range  = maxElo - minElo || 1;
+
+  const rows = list.map((p, i) => {
+    const pct = Math.round(((p.elo - minElo) / range) * 100);
+    return `
+      <div class="rank-row">
+        <div class="rank-num">${i + 1}</div>
+        <div class="rank-info">
+          <div class="rank-name">${p.first} ${p.last}</div>
+          <div class="rank-team">${p.team}${p.games > 0 ? ' &middot; ' + p.games + 'g' : ''}</div>
+          <div class="elo-bar-bg"><div class="elo-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="rank-elo-wrap">
+          <div class="rank-elo">${p.elo}</div>
+          <div class="rank-elo-label">ELO</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  c.innerHTML = `<div class="results-list">${rows}</div>${editSection()}`;
+}
+
+// ── TIERS ─────────────────────────────────────────────────────────────────
+const TIERS = [
+  { key: 'S', label: 'Elite',     minPct: 85 },
+  { key: 'A', label: 'Very Good', minPct: 65 },
+  { key: 'B', label: 'Good',      minPct: 45 },
+  { key: 'C', label: 'Average',   minPct: 25 },
+  { key: 'D', label: 'Below Avg', minPct: 0  },
+];
+
+function renderTiers(c) {
+  const list     = [...players[currentPos]].sort((a,b) => b.elo - a.elo);
+  const played   = list.filter(p => p.games > 0);
+  const unplayed = list.filter(p => p.games === 0);
+
+  if (!played.length) {
+    c.innerHTML = '<div class="empty-state"><h3>No votes yet</h3><p>Cast some votes to see tier rankings.</p></div>' + editSection();
+    return;
+  }
+
+  const maxElo = played[0].elo;
+  const minElo = played[played.length - 1].elo;
+  const range  = maxElo - minElo || 1;
+
+  function getTier(elo) {
+    const pct = ((elo - minElo) / range) * 100;
+    for (const t of TIERS) { if (pct >= t.minPct) return t; }
+    return TIERS[TIERS.length - 1];
+  }
+
+  const tierMap = {};
+  TIERS.forEach(t => { tierMap[t.key] = []; });
+  played.forEach(p => { tierMap[getTier(p.elo).key].push(p); });
+
+  const sections = TIERS.map(t => {
+    const g = tierMap[t.key];
+    if (!g.length) return '';
+    const cards = g.map(p => `
+      <div class="tier-card">
+        <div class="tier-card-name">${p.first} ${p.last}</div>
+        <div class="tier-card-team">${p.team}</div>
+        <div class="tier-card-elo">${p.elo} ELO</div>
+      </div>`).join('');
+    return `
+      <div class="tier-section tier-${t.key}">
+        <div class="tier-header">
+          <div class="tier-badge">${t.key}</div>
+          <div>
+            <div class="tier-label">${t.label}</div>
+            <div class="tier-count">${g.length} player${g.length !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <div class="tier-grid">${cards}</div>
+      </div>`;
+  }).join('');
+
+  const unplayedHtml = unplayed.length
+    ? `<div class="unranked-note">${unplayed.length} player${unplayed.length !== 1 ? 's' : ''} unranked — cast votes to place them</div>`
+    : '';
+
+  c.innerHTML = sections + unplayedHtml + editSection();
+}
+
+// ── EDIT ──────────────────────────────────────────────────────────────────
+function editSection() {
+  const tabs = ['F','D','G'].map(p => {
+    const label = { F: 'Forwards', D: 'Defence', G: 'Goalies' }[p];
+    return `<button class="pos-edit-tab${editPos === p ? ' active' : ''}" onclick="setEditPos('${p}')">${label}</button>`;
+  }).join('');
+
+  const lines = players[editPos].map(p => `${p.first} ${p.last} | ${p.team}`).join('\n');
+
+  return `
+    <div class="edit-section">
+      <button class="edit-toggle" onclick="toggleEdit()">&#9998; Edit Players</button>
+      <div class="edit-panel${editOpen ? ' open' : ''}" id="edit-panel">
+        <h3>Edit Player List</h3>
+        <p>One player per line: <code>First Last | TEAM</code><br>
+        Elo scores are preserved when names match.</p>
+        <div class="pos-edit-tabs">${tabs}</div>
+        <textarea id="player-textarea">${lines}</textarea>
+        <div style="margin-top:10px;">
+          <button class="save-btn" onclick="savePlayers()">Save Players</button>
+          <span class="save-msg" id="save-msg">&#10003; Saved</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleEdit()    { editOpen = !editOpen; render(); }
+function setEditPos(pos) { editPos = pos; render(); }
+
+async function savePlayers() {
+  const raw   = document.getElementById('player-textarea').value;
+  const lines = raw.split('\n').filter(l => l.trim());
+
+  const existing = {};
+  players[editPos].forEach(p => { existing[p.id] = p; });
+
+  const newList = lines.map(l => parseLine(l)).map(np => {
+    if (existing[np.id]) return { ...existing[np.id], first: np.first, last: np.last, team: np.team };
+    return np;
+  });
+
+  // Find removed players and delete them
+  const newIds = new Set(newList.map(p => p.id));
+  const removed = players[editPos].filter(p => !newIds.has(p.id));
+  if (removed.length) {
+    await sb.from('rankings')
+      .delete()
+      .eq('position', editPos)
+      .in('player_id', removed.map(p => p.id));
+  }
+
+  // Upsert all new/updated players
+  const rows = newList.map(p => ({
+    position: editPos, player_id: p.id, first: p.first, last: p.last,
+    team: p.team, elo: p.elo, games: p.games
+  }));
+  await sb.from('rankings').upsert(rows, { onConflict: 'position,player_id' });
+
+  players[editPos] = newList;
+  if (editPos === currentPos) currentMatchup = null;
+
+  const msg = document.getElementById('save-msg');
+  msg.style.opacity = '1';
+  setTimeout(() => { msg.style.opacity = '0'; }, 2000);
+  showToast('Players saved');
+  render();
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function setPosition(pos) {
+  currentPos = pos;
+  currentMatchup = null;
+  document.querySelectorAll('.pos-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['F','D','G'][i] === pos);
+  });
+  render();
+}
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['vote','ranked','tiers'][i] === view);
+  });
+  render();
+}
+
+async function confirmReset() {
+  if (confirm('Reset all Elo scores to 1200? Player lists will be kept.')) {
+    ['F','D','G'].forEach(pos => {
+      players[pos].forEach(p => { p.elo = 1200; p.games = 0; });
+    });
+    totalVotes = 0;
+    currentMatchup = null;
+
+    const rows = [];
+    ['F','D','G'].forEach(pos => {
+      players[pos].forEach(p => {
+        rows.push({ position: pos, player_id: p.id, first: p.first, last: p.last, team: p.team, elo: 1200, games: 0 });
+      });
+    });
+    await sb.from('rankings').upsert(rows, { onConflict: 'position,player_id' });
+
+    showToast('Scores reset');
+    render();
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────
+function showApp(user) {
+  currentUser = user;
+  document.getElementById('auth-shell').innerHTML = '';
+  document.getElementById('app-shell').style.display = 'block';
+  document.getElementById('header-right').innerHTML = `
+    <span class="user-badge">${user.email}</span>
+    <button class="header-btn" onclick="confirmReset()">Reset Scores</button>
+    <button class="header-btn danger" onclick="signOut()">Sign Out</button>
+  `;
+  loadPlayers();
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    showApp(session.user);
+  } else {
+    currentUser = null;
+    document.getElementById('app-shell').style.display = 'none';
+    renderAuth();
+  }
+});
+
+</script>
+</body>
+</html>
