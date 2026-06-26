@@ -554,7 +554,6 @@ let players     = { F: [], D: [], G: [] };
 let totalVotes  = 0;
 let currentMatchup = null;
 let authMode    = 'login'; // 'login' | 'signup' | 'magic'
-let playersLoaded = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 function parseLine(l) {
@@ -665,24 +664,7 @@ async function signOut() {
 
 // ── SUPABASE DATA ─────────────────────────────────────────────────────────
 async function loadPlayers() {
-  if (playersLoaded) return;
-
-  // Restore from local cache immediately so matchup shows before Supabase responds
-  try {
-    const cached = localStorage.getItem('nhl-players-cache');
-    if (cached) {
-      players = JSON.parse(cached);
-      playersLoaded = true;
-      restoreMatchup();
-      render();
-    }
-  } catch(e) {}
-
-  // Then fetch fresh from Supabase in the background to get latest elo
-  if (!document.getElementById('main-content').innerHTML.trim() ||
-      document.getElementById('main-content').innerHTML.includes('loading')) {
-    document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
-  }
+  document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
 
   const { data, error } = await sb.from('rankings').select('*');
 
@@ -709,11 +691,7 @@ async function loadPlayers() {
     });
   }
 
-  playersLoaded = true;
-  // Cache players locally so full page reloads don't show a new matchup
-  try { localStorage.setItem('nhl-players-cache', JSON.stringify(players)); } catch(e) {}
-  // Only reset matchup if we don't already have one showing
-  if (!currentMatchup) restoreMatchup();
+  currentMatchup = null;
   render();
 }
 
@@ -760,29 +738,7 @@ function pickMatchup(list) {
   return [list[a], list[b]];
 }
 
-function initMatchup() {
-  currentMatchup = pickMatchup(players[currentPos]);
-  saveMatchup();
-}
-
-function saveMatchup() {
-  if (!currentMatchup) { localStorage.removeItem('nhl-matchup'); return; }
-  const [a, b] = currentMatchup;
-  localStorage.setItem('nhl-matchup', JSON.stringify({ pos: currentPos, aId: a.id, bId: b.id }));
-}
-
-function restoreMatchup() {
-  try {
-    const raw = localStorage.getItem('nhl-matchup');
-    if (!raw) return;
-    const { pos, aId, bId } = JSON.parse(raw);
-    if (pos !== currentPos) return;
-    const list = players[currentPos];
-    const a = list.find(p => p.id === aId);
-    const b = list.find(p => p.id === bId);
-    if (a && b) currentMatchup = [a, b];
-  } catch(e) {}
-}
+function initMatchup() { currentMatchup = pickMatchup(players[currentPos]); }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
 function render() {
@@ -799,7 +755,6 @@ function renderVote(c) {
     c.innerHTML = '<div class="empty-state"><h3>Not enough players</h3><p>Add at least 2 players to start voting.</p></div>' + editSection();
     return;
   }
-  if (!currentMatchup) restoreMatchup();
   if (!currentMatchup) initMatchup();
   const [a, b]  = currentMatchup;
   const posLabel = { F: 'Forward', D: 'Defenceman', G: 'Goalie' }[currentPos];
@@ -842,7 +797,6 @@ async function castVote(side) {
   updateElo(winner, loser);
   totalVotes++;
 
-  saveMatchup();
   document.getElementById(winnerId).classList.add('voted-winner');
   document.getElementById(loserId).classList.add('voted-loser');
 
@@ -851,12 +805,11 @@ async function castVote(side) {
     savePlayer(currentPos, winner),
     savePlayer(currentPos, loser),
   ]);
-  try { localStorage.setItem('nhl-players-cache', JSON.stringify(players)); } catch(e) {}
 
   setTimeout(() => { currentMatchup = null; render(); }, 500);
 }
 
-function skipMatchup() { currentMatchup = null; localStorage.removeItem('nhl-matchup'); initMatchup(); render(); }
+function skipMatchup() { currentMatchup = null; initMatchup(); render(); }
 
 // ── RANKED ────────────────────────────────────────────────────────────────
 function renderRanked(c) {
@@ -1107,8 +1060,6 @@ function showToast(msg) {
 
 // ── BOOT ──────────────────────────────────────────────────────────────────
 function showApp(user) {
-  // Only run once — Supabase fires onAuthStateChange on every tab focus
-  if (playersLoaded) return;
   currentUser = user;
   document.getElementById('auth-shell').innerHTML = '';
   document.getElementById('app-shell').style.display = 'block';
@@ -1123,12 +1074,8 @@ function showApp(user) {
 sb.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
     showApp(session.user);
-  } else if (event === 'SIGNED_OUT') {
-    // Only clear on explicit sign out, not on token refresh
-    playersLoaded = false;
+  } else {
     currentUser = null;
-    players = { F: [], D: [], G: [] };
-    currentMatchup = null;
     document.getElementById('app-shell').style.display = 'none';
     renderAuth();
   }
