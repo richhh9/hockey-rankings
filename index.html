@@ -738,7 +738,29 @@ function pickMatchup(list) {
   return [list[a], list[b]];
 }
 
-function initMatchup() { currentMatchup = pickMatchup(players[currentPos]); }
+function initMatchup() {
+  currentMatchup = pickMatchup(players[currentPos]);
+  saveMatchup();
+}
+
+function saveMatchup() {
+  if (!currentMatchup) { localStorage.removeItem('nhl-matchup'); return; }
+  const [a, b] = currentMatchup;
+  localStorage.setItem('nhl-matchup', JSON.stringify({ pos: currentPos, aId: a.id, bId: b.id }));
+}
+
+function restoreMatchup() {
+  try {
+    const raw = localStorage.getItem('nhl-matchup');
+    if (!raw) return;
+    const { pos, aId, bId } = JSON.parse(raw);
+    if (pos !== currentPos) return;
+    const list = players[currentPos];
+    const a = list.find(p => p.id === aId);
+    const b = list.find(p => p.id === bId);
+    if (a && b) currentMatchup = [a, b];
+  } catch(e) {}
+}
 
 // ── RENDER ────────────────────────────────────────────────────────────────
 function render() {
@@ -755,6 +777,7 @@ function renderVote(c) {
     c.innerHTML = '<div class="empty-state"><h3>Not enough players</h3><p>Add at least 2 players to start voting.</p></div>' + editSection();
     return;
   }
+  if (!currentMatchup) restoreMatchup();
   if (!currentMatchup) initMatchup();
   const [a, b]  = currentMatchup;
   const posLabel = { F: 'Forward', D: 'Defenceman', G: 'Goalie' }[currentPos];
@@ -797,6 +820,7 @@ async function castVote(side) {
   updateElo(winner, loser);
   totalVotes++;
 
+  saveMatchup();
   document.getElementById(winnerId).classList.add('voted-winner');
   document.getElementById(loserId).classList.add('voted-loser');
 
@@ -809,7 +833,7 @@ async function castVote(side) {
   setTimeout(() => { currentMatchup = null; render(); }, 500);
 }
 
-function skipMatchup() { currentMatchup = null; initMatchup(); render(); }
+function skipMatchup() { currentMatchup = null; localStorage.removeItem('nhl-matchup'); initMatchup(); render(); }
 
 // ── RANKED ────────────────────────────────────────────────────────────────
 function renderRanked(c) {
