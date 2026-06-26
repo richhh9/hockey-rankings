@@ -554,6 +554,7 @@ let players     = { F: [], D: [], G: [] };
 let totalVotes  = 0;
 let currentMatchup = null;
 let authMode    = 'login'; // 'login' | 'signup' | 'magic'
+let playersLoaded = false;
 
 // ── HELPERS ───────────────────────────────────────────────────────────────
 function parseLine(l) {
@@ -664,6 +665,7 @@ async function signOut() {
 
 // ── SUPABASE DATA ─────────────────────────────────────────────────────────
 async function loadPlayers() {
+  if (playersLoaded) return;
   document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
 
   const { data, error } = await sb.from('rankings').select('*');
@@ -691,7 +693,9 @@ async function loadPlayers() {
     });
   }
 
+  playersLoaded = true;
   currentMatchup = null;
+  restoreMatchup();
   render();
 }
 
