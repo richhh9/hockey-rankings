@@ -666,7 +666,23 @@ async function signOut() {
 // ── SUPABASE DATA ─────────────────────────────────────────────────────────
 async function loadPlayers() {
   if (playersLoaded) return;
-  document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
+
+  // Restore from local cache immediately so matchup shows before Supabase responds
+  try {
+    const cached = localStorage.getItem('nhl-players-cache');
+    if (cached) {
+      players = JSON.parse(cached);
+      playersLoaded = true;
+      restoreMatchup();
+      render();
+    }
+  } catch(e) {}
+
+  // Then fetch fresh from Supabase in the background to get latest elo
+  if (!document.getElementById('main-content').innerHTML.trim() ||
+      document.getElementById('main-content').innerHTML.includes('loading')) {
+    document.getElementById('main-content').innerHTML = '<div class="loading">Loading your rankings…</div>';
+  }
 
   const { data, error } = await sb.from('rankings').select('*');
 
@@ -694,8 +710,10 @@ async function loadPlayers() {
   }
 
   playersLoaded = true;
-  currentMatchup = null;
-  restoreMatchup();
+  // Cache players locally so full page reloads don't show a new matchup
+  try { localStorage.setItem('nhl-players-cache', JSON.stringify(players)); } catch(e) {}
+  // Only reset matchup if we don't already have one showing
+  if (!currentMatchup) restoreMatchup();
   render();
 }
 
@@ -833,6 +851,7 @@ async function castVote(side) {
     savePlayer(currentPos, winner),
     savePlayer(currentPos, loser),
   ]);
+  try { localStorage.setItem('nhl-players-cache', JSON.stringify(players)); } catch(e) {}
 
   setTimeout(() => { currentMatchup = null; render(); }, 500);
 }
