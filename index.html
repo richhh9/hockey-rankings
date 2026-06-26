@@ -1088,6 +1088,8 @@ function showToast(msg) {
 
 // ── BOOT ──────────────────────────────────────────────────────────────────
 function showApp(user) {
+  // Only run once — Supabase fires onAuthStateChange on every tab focus
+  if (playersLoaded) return;
   currentUser = user;
   document.getElementById('auth-shell').innerHTML = '';
   document.getElementById('app-shell').style.display = 'block';
@@ -1102,8 +1104,12 @@ function showApp(user) {
 sb.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
     showApp(session.user);
-  } else {
+  } else if (event === 'SIGNED_OUT') {
+    // Only clear on explicit sign out, not on token refresh
+    playersLoaded = false;
     currentUser = null;
+    players = { F: [], D: [], G: [] };
+    currentMatchup = null;
     document.getElementById('app-shell').style.display = 'none';
     renderAuth();
   }
