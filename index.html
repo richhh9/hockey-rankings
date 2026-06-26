@@ -221,7 +221,42 @@
   .view-tab:first-child { border-radius: 8px 0 0 8px; }
   .view-tab:last-child  { border-radius: 0 8px 8px 0; border-left: none; }
   .view-tab:nth-child(2){ border-left: none; border-right: none; }
+  .view-tab:nth-child(3){ border-left: none; border-right: none; }
   .view-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* EXPORT */
+  .export-wrap { display: flex; flex-direction: column; gap: 24px; }
+  .export-section h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 16px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;
+  }
+  .export-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; font-family: 'Barlow', sans-serif;
+  }
+  .export-table th {
+    text-align: left; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+    border-bottom: 1px solid var(--border); padding: 6px 10px;
+  }
+  .export-table td {
+    padding: 6px 10px; border-bottom: 1px solid var(--border);
+    color: var(--text); line-height: 1.4;
+  }
+  .export-table tr:last-child td { border-bottom: none; }
+  .export-table td:first-child { color: var(--text-dim); width: 40px; }
+  .export-table td:last-child  { color: var(--text-muted); }
+  .copy-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-muted); padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; font-size: 12px; font-family: 'Barlow', sans-serif;
+    letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.15s;
+    margin-bottom: 10px; display: inline-block;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
 
   /* MAIN */
   .main { padding: 24px; max-width: 700px; margin: 0 auto; }
@@ -434,6 +469,7 @@
     <button class="view-tab active" onclick="setView('vote')">Vote</button>
     <button class="view-tab" onclick="setView('ranked')">Rankings</button>
     <button class="view-tab" onclick="setView('tiers')">Tiers</button>
+    <button class="view-tab" onclick="setView('export')">Export</button>
   </div>
   <div class="main" id="main-content"></div>
 </div>
@@ -709,7 +745,8 @@ function render() {
   const c = document.getElementById('main-content');
   if      (currentView === 'vote')   renderVote(c);
   else if (currentView === 'ranked') renderRanked(c);
-  else                               renderTiers(c);
+  else if (currentView === 'tiers')  renderTiers(c);
+  else                               renderExport(c);
 }
 
 function renderVote(c) {
@@ -944,9 +981,53 @@ function setPosition(pos) {
 function setView(view) {
   currentView = view;
   document.querySelectorAll('.view-tab').forEach((t, i) => {
-    t.classList.toggle('active', ['vote','ranked','tiers'][i] === view);
+    t.classList.toggle('active', ['vote','ranked','tiers','export'][i] === view);
   });
   render();
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────
+function renderExport(c) {
+  const positions = [
+    { key: 'F', label: 'Forwards' },
+    { key: 'D', label: 'Defence' },
+    { key: 'G', label: 'Goalies' },
+  ];
+
+  const sections = positions.map(({ key, label }) => {
+    const sorted = [...players[key]].sort((a, b) => b.elo - a.elo);
+    const rows = sorted.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${p.first} ${p.last}</td>
+        <td>${p.team}</td>
+      </tr>`).join('');
+
+    const tsv = sorted.map((p, i) => `${i + 1}\t${p.first} ${p.last}\t${p.team}`).join('\n');
+
+    return `
+      <div class="export-section">
+        <h3>${label}</h3>
+        <button class="copy-btn" onclick="copyTSV(this, ${JSON.stringify(tsv)})">&#128203; Copy to Clipboard</button>
+        <table class="export-table">
+          <thead><tr><th>Rank</th><th>Name</th><th>Team</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+
+  c.innerHTML = `<div class="export-wrap">${sections}</div>`;
+}
+
+function copyTSV(btn, tsv) {
+  navigator.clipboard.writeText(tsv).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = '&#128203; Copy to Clipboard';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
 }
 
 async function confirmReset() {
